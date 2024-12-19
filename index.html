@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras</title>
+    <style>
+        /* Estilos básicos */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; color: #343a40; }
+
+        /* Cabeçalho */
+        h1 { text-align: center; margin-bottom: 30px; color: #495057; font-size: 2.5em; }
+
+        /* Layout principal */
+        #add-product-form, #product-list, #cart {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        /* Formulário */
+        #add-product-form { display: flex; gap: 10px; justify-content: center; align-items: center; }
+        #add-product-form input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            width: 40%;
+        }
+        #add-product-form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            color: #ffffff;
+            background-color: #28a745;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        #add-product-form button:hover { background-color: #218838; }
+
+        /* Lista de Produtos */
+        #product-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .product {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .product:hover { transform: translateY(-5px); }
+        .product img { width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px; }
+        .product span { display: block; font-size: 18px; margin-bottom: 10px; color: #495057; }
+
+        /* Botões dos produtos */
+        .product button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .product .delete-btn {
+            background-color: #dc3545;
+            color: #ffffff;
+        }
+        .product .delete-btn:hover { background-color: #c82333; }
+        .product button { background-color: #28a745; color: white; }
+        .product button:hover { background-color: #218838; }
+
+        /* Carrinho */
+        #cart h2 { font-size: 1.8em; margin-bottom: 20px; color: #495057; text-align: center; }
+        #cart-items { list-style-type: none; padding-left: 0; }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 16px;
+        }
+        .cart-item button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #dc3545;
+            color: white;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .cart-item button:hover { background-color: #c82333; }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            #add-product-form { flex-direction: column; gap: 15px; }
+            .product { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Loja de Comidas</h1>
+    <!-- Formulário para adicionar novos produtos -->
+    <div id="add-product-form">
+        <input type="text" id="product-name" placeholder="Nome do produto" required>
+        <input type="url" id="product-image" placeholder="URL da imagem" required>
+        <button onclick="addNewProduct()">Adicionar Produto</button>
+    </div>
+    <div id="product-list"></div>
+    <div id="cart">
+        <h2>Carrinho</h2>
+        <ul id="cart-items"></ul>
+    </div>
+    <script>
+        // Função para carregar produtos do localStorage e exibir na página
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            products.forEach((product, index) => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('product');
+                const img = document.createElement('img');
+                img.src = product.image;
+                img.alt = product.name;
+                const name = document.createElement('span');
+                name.textContent = product.name;
+                const addButton = document.createElement('button');
+                addButton.textContent = 'Adicionar ao Carrinho';
+                addButton.onclick = () => addToCart(product);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Excluir';
+                deleteButton.classList.add('delete-btn');
+                deleteButton.onclick = () => deleteProduct(index);
+                productDiv.appendChild(img);
+                productDiv.appendChild(name);
+                productDiv.appendChild(addButton);
+                productDiv.appendChild(deleteButton);
+                productList.appendChild(productDiv);
+            });
+        }
+        function addNewProduct() {
+            const name = document.getElementById('product-name').value;
+            const image = document.getElementById('product-image').value;
+            if (name && image) {
+                let products = JSON.parse(localStorage.getItem('products')) || [];
+                const productExists = products.some(product => product.name.toLowerCase() === name.toLowerCase());
+                if (productExists) {
+                    alert("Este produto já foi adicionado.");
+                    return;
+                }
+                products.push({ name, image });
+                localStorage.setItem('products', JSON.stringify(products));
+                loadProducts();
+                document.getElementById('product-name').value = '';
+                document.getElementById('product-image').value = '';
+            }
+        }
+        function deleteProduct(index) {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            products.splice(index, 1);
+            localStorage.setItem('products', JSON.stringify(products));
+            loadProducts();
+        }
+        function loadCart() {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartList = document.getElementById('cart-items');
+            cartList.innerHTML = '';
+            if (cartItems.length === 0) {
+                cartList.innerHTML = '<p id="empty-cart">O carrinho está vazio</p>';
+            }
+            cartItems.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.classList.add('cart-item');
+                const productText = document.createElement('span');
+                productText.textContent = item.name;
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remover';
+                removeBtn.onclick = () => removeFromCart(index);
+                li.appendChild(productText);
+                li.appendChild(removeBtn);
+                cartList.appendChild(li);
+            });
+        }
+        function addToCart(product) {
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            cartItems.push(product);
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+            loadCart();
+        }
+        function removeFromCart(index) {
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            cartItems.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+            loadCart();
+        }
+        window.onload = () => {
+            loadProducts();
+            loadCart();
+        };
+    </script>
+</body>
+</html>
